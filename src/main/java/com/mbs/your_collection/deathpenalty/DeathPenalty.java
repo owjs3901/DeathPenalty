@@ -77,6 +77,13 @@ public final class DeathPenalty extends JavaPlugin implements Listener {
 	@EventHandler
 	public void death(PlayerDeathEvent e){
 		List<ItemStack> list=new ArrayList<>();
+		ItemStack inOffHand=e.getEntity().getInventory().getItemInOffHand();
+		/**
+		 * 왼손일때 없어지는 오류 수정
+		 */
+		if(inOffHand!=null)
+			list.add(inOffHand);
+
 		for (ItemStack armorContent : e.getEntity().getInventory().getArmorContents()) {
 			if(armorContent!=null)
 				list.add(armorContent);
