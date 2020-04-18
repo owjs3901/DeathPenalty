@@ -1,7 +1,6 @@
 package com.mbs.your_collection.deathpenalty;
 
 import org.bukkit.Bukkit;
-import org.bukkit.GameRule;
 import org.bukkit.World;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -23,16 +22,19 @@ public final class DeathPenalty extends JavaPlugin implements Listener {
 
 	//drop,remove
 	private HashMap<String,Double[]> map=new HashMap<>();
+	private Metrics metrics;
 
 	@Override
 	public void onEnable() {
+		metrics =new Metrics(this,7212 );
+
+
 		Bukkit.getPluginManager().registerEvents(this,this);
 
 		loadConfig();
 	}
 
 	private void loadConfig(){
-
 		if(getConfig().contains("keepInv"))
 			keepInv=getConfig().getBoolean("keepInv");
 		else
@@ -50,6 +52,10 @@ public final class DeathPenalty extends JavaPlugin implements Listener {
 			getConfig().set("defaultDrop",defaultRemove);
 
 		for (World world : Bukkit.getWorlds()) {
+
+
+
+
 			double remove = defaultRemove;
 			double drop = defaultDrop;
 			final String path=world.getName()+".";
@@ -61,8 +67,22 @@ public final class DeathPenalty extends JavaPlugin implements Listener {
 				remove=getConfig().getDouble(path+"remove");
 			else getConfig().set(path+"remove",remove);
 			map.put(world.getName(),new Double[]{drop,remove});
+			switch(world.getName()){
+				case "world":case "world_nether":case "world_end":
+					double finalDrop = drop;
+					metrics.addCustomChart(new Metrics.SimplePie(world.getName()+"_drop", () -> String.valueOf(finalDrop)));
+					double finalRemove = remove;
+					metrics.addCustomChart(new Metrics.SimplePie(world.getName()+"_remove", () -> String.valueOf(finalRemove)));
+					break;
+			}
+
+
 			if(keepInv)
-				world.setGameRule(GameRule.KEEP_INVENTORY,true);
+				world.setGameRuleValue("keepInventory","true");
+//				for (String gameRule : world.getGameRules()) {
+//					System.out.println(gameRule);
+//				}
+//				world.setGameRule(GameRule.KEEP_INVENTORY,true);
 		}
 		saveConfig();
 	}
@@ -70,7 +90,7 @@ public final class DeathPenalty extends JavaPlugin implements Listener {
 	@Override
 	public void reloadConfig() {
 		super.reloadConfig();
-		loadConfig();
+//		loadConfig();
 	}
 	private Random r=new Random();
 

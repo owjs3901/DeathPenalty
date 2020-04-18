@@ -1,4 +1,4 @@
 name: DeathPenalty
 version: @version@
 main: com.mbs.your_collection.deathpenalty.DeathPenalty
-api-version: 1.13
+api-version: 1.12.2
