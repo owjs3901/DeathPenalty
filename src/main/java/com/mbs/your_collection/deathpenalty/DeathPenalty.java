@@ -20,8 +20,8 @@ public final class DeathPenalty extends JavaPlugin implements Listener {
 	private double defaultDrop=0.3;
 	private boolean keepInv=true;
 
-	//drop,remove
-	private HashMap<String,Double[]> map=new HashMap<>();
+	//drop,remove,playerDrop,playerRemove
+	private HashMap<String,State> map=new HashMap<>();
 	private Metrics metrics;
 
 	@Override
@@ -58,7 +58,12 @@ public final class DeathPenalty extends JavaPlugin implements Listener {
 
 			double remove = defaultRemove;
 			double drop = defaultDrop;
+			double removePlayer = defaultRemove;
+			double dropPlayer = defaultDrop;
 			final String path=world.getName()+".";
+			/**
+			 * 일반적인 사망
+			 */
 			if(getConfig().contains(path+"drop"))
 				drop=getConfig().getDouble(path+"drop");
 			else getConfig().set(path+"drop",drop);
@@ -66,13 +71,30 @@ public final class DeathPenalty extends JavaPlugin implements Listener {
 			if(getConfig().contains(path+"remove"))
 				remove=getConfig().getDouble(path+"remove");
 			else getConfig().set(path+"remove",remove);
-			map.put(world.getName(),new Double[]{drop,remove});
+			/**
+			 * 플레이어에 의한 사망
+			 */
+			if(getConfig().contains(path+"drop_player"))
+				drop=getConfig().getDouble(path+"drop_player");
+			else getConfig().set(path+"drop_player",drop);
+
+			if(getConfig().contains(path+"remove_player"))
+				remove=getConfig().getDouble(path+"remove_player");
+			else getConfig().set(path+"remove_player",remove);
+			
+			map.put(world.getName(),new State(drop,remove,dropPlayer,removePlayer));
 			switch(world.getName()){
 				case "world":case "world_nether":case "world_the_end":
 					double finalDrop = drop;
 					metrics.addCustomChart(new Metrics.SimplePie(world.getName()+"_drop", () -> String.valueOf(finalDrop)));
 					double finalRemove = remove;
 					metrics.addCustomChart(new Metrics.SimplePie(world.getName()+"_remove", () -> String.valueOf(finalRemove)));
+
+					double finalDropPlayer = dropPlayer;
+					metrics.addCustomChart(new Metrics.SimplePie(world.getName()+"_drop_player", () -> String.valueOf(finalDropPlayer)));
+					double finalRemovePlayer = removePlayer;
+					metrics.addCustomChart(new Metrics.SimplePie(world.getName()+"_remove_player", () -> String.valueOf(finalRemovePlayer)));
+
 					break;
 			}
 
@@ -116,8 +138,15 @@ public final class DeathPenalty extends JavaPlugin implements Listener {
 		double remove=defaultRemove;
 		double drop=defaultDrop;
 		if(map.containsKey(name)){
-			drop=map.get(name)[0];
-			remove=map.get(name)[1];
+			if(e.getEntity().getKiller()!=null){
+				drop=map.get(name).getDropFromPlayer();
+				remove=map.get(name).getRemoveFromPlayer();
+			}
+			else{
+				drop=map.get(name).getDrop();
+				remove=map.get(name).getRemove();
+			}
+
 		}
 		int drop1= (int) (drop*list.size());
 		int remove1= (int) (remove*list.size());
@@ -134,8 +163,6 @@ public final class DeathPenalty extends JavaPlugin implements Listener {
 		for (int i = 0; i < list.size(); i++) {
 			e.getEntity().getInventory().setItem(i,list.get(i));
 		}
-
-
 	}
 
 
