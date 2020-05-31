@@ -68,7 +68,7 @@ public final class DeathPenalty extends JavaPlugin implements Listener {
 			else getConfig().set(path+"remove",remove);
 			map.put(world.getName(),new Double[]{drop,remove});
 			switch(world.getName()){
-				case "world":case "world_nether":case "world_end":
+				case "world":case "world_nether":case "world_the_end":
 					double finalDrop = drop;
 					metrics.addCustomChart(new Metrics.SimplePie(world.getName()+"_drop", () -> String.valueOf(finalDrop)));
 					double finalRemove = remove;
